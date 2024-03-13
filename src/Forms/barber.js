@@ -7,6 +7,7 @@ import { Table, Button, Container, Modal, ModalBody, ModalHeader, FormGroup, Mod
 
 const listUrl = "http://localhost:7443/barber/list"
 const createUrl = "http://localhost:7443/barber/created"
+const updateUrl = "http://localhost:7443/barber/update"
 
 class Barber extends React.Component {
 
@@ -61,6 +62,43 @@ class Barber extends React.Component {
     this.setState({ modalInsertar: false, })
   };
 
+  mostrarModalActualizar = (dato) =>{
+    this.setState({
+      form:dato,
+      modalActualizar:true,
+    });
+  };
+
+  editar = () => {
+    let valorNuevo = {...this.state.form};
+    const request = {
+      id: valorNuevo.id,
+      name: valorNuevo.name,
+      status: valorNuevo.status
+    }
+
+    this.setState({
+      modalActualizar: false
+    })
+
+    axios.put(updateUrl, request, {
+      'Content-Type': 'application/json'
+    })
+      .then(res => {
+        const response = res.data
+        if (response.successful) {
+          console.log(response.message)
+          this.componentDidMount()
+        } else {
+          console.error(response.message)
+        }
+      })
+  }
+
+  cerrarModalActualizar = () =>{
+    this.setState({modalActualizar:false,})
+  };
+
   processStatus = (status) => {
     if (status) {
       return 'Activo'
@@ -91,7 +129,7 @@ class Barber extends React.Component {
             <tr>
               <th>Nombre</th>
               <th>Estado</th>
-              <th>Edición</th>
+              <th>Acciones</th>
             </tr>
             </thead>
             <tbody>
@@ -153,15 +191,12 @@ class Barber extends React.Component {
 
           <ModalBody>
             <FormGroup>
-              <label>
-                Id:
-              </label>
-
               <input
                 className="form-control"
-                readOnly
-                type="text"
-              //value={this.state.form.id}
+                name="id"
+                type="hidden"
+                onChange={this.handleChange}
+                value={this.state.form.id}
               />
             </FormGroup>
 
@@ -174,8 +209,20 @@ class Barber extends React.Component {
                 name="name"
                 type="text"
                 onChange={this.handleChange}
-              //value={this.state.form.libro}
+                value={this.state.form.name}
               />
+            </FormGroup>
+
+            <FormGroup>
+              <label>
+                Status:
+              </label>
+              <select className="form-control"
+                name="status"
+                onChange={this.handleChange}>
+                <option value="true">Activo</option>
+                <option value="false">Inactivo</option>
+              </select>
             </FormGroup>
           </ModalBody>
 

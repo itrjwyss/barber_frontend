@@ -5,6 +5,9 @@ import { Table, Button, Container, Modal, ModalBody, ModalHeader, FormGroup, Mod
 import axios from "axios";
 
 const listUrl = "http://localhost:7443/customer/list"
+const createUrl = "http://localhost:7443/customer/created"
+const updateUrl = "http://localhost:7443/customer/update"
+
 
 class Customer extends React.Component {
 
@@ -12,6 +15,12 @@ class Customer extends React.Component {
     data: [],
     modalActualizar: false,
     modalInsertar: false,
+    form: {
+      id: 0,
+      name: "",
+      phoneNumber: "",
+      status: true
+    }
   };
 
   componentDidMount() {
@@ -26,9 +35,90 @@ class Customer extends React.Component {
     this.setState({ modalInsertar: true, });
   };
 
+  insertar = () => {
+    let valorNuevo = {...this.state.form};
+    const request = {
+      name: valorNuevo.name,
+      phoneNumber: valorNuevo.phoneNumber,
+    }
+
+    this.setState({
+      modalInsertar: false
+    })
+
+    axios.post(createUrl, request, {
+      'Content-Type': 'application/json'
+    })
+      .then(res => {
+        const response = res.data
+        if (response.successful) {
+          console.log(response.message)
+          this.componentDidMount()
+        } else {
+          console.error(response.message)
+        }
+      })
+  }
+
   cerrarModalInsertar = () => {
     this.setState({ modalInsertar: false, })
   };
+
+  mostrarModalActualizar = (dato) =>{
+    this.setState({
+      form:dato,
+      modalActualizar:true,
+    });
+  };
+
+  editar = () => {
+    let valorNuevo = {...this.state.form};
+    const request = {
+      id: valorNuevo.id,
+      name: valorNuevo.name,
+      status: valorNuevo.status,
+      phoneNumber: valorNuevo.phoneNumber
+    }
+
+    this.setState({
+      modalActualizar: false
+    })
+
+    axios.put(updateUrl, request, {
+      'Content-Type': 'application/json'
+    })
+      .then(res => {
+        const response = res.data
+        if (response.successful) {
+          console.log(response.message)
+          this.componentDidMount()
+        } else {
+          console.error(response.message)
+        }
+      })
+  }
+
+  cerrarModalActualizar = () =>{
+    this.setState({modalActualizar:false,})
+  };
+
+  processStatus = (status) => {
+    if (status) {
+      return 'Activo'
+    } else {
+      return 'Inactivo'
+    }
+  }
+
+  handleChange = (e) => {
+    this.setState({
+      form: {
+        ...this.state.form,
+        [e.target.name]: e.target.value
+      }
+    })
+  }
+
   render() {
     return (
       <>
@@ -40,23 +130,24 @@ class Customer extends React.Component {
           <Table>
             <thead>
               <tr>
-                <th>Id</th>
                 <th>Nombre</th>
                 <th>Número de Teléfono</th>
+                <th>Estado</th>
+                <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {/* {this.state.data.map((elemento)=>(
-                  <tr>
-                    <td>{elemento.id}</td>
-                    <td>{elemento.libro}</td>
-                    <td>{elemento.autor}</td>
-                    <td>
-                      <Button color='primary' onClick={()=>this.mostrarModalActualizar(elemento)}>Editar</Button>{" "}
-                      <Button color='danger' onClick={()=>this.mostrarModalEliminar(elemento)}>Eliminar</Button>
-                    </td>{" "}
-                  </tr>
-                ))} */}
+              {this.state.data.map((elemento) => (
+                <tr>
+                  <td>{elemento.name}</td>
+                  <td>{elemento.phoneNumber}</td>
+                  <td>{this.processStatus(elemento.status)}</td>
+                  <td>
+                    <Button color='primary' onClick={() => this.mostrarModalActualizar(elemento)}>Editar</Button>{" "}
+                  </td>
+                  {" "}
+                </tr>
+              ))}
             </tbody>
           </Table>
         </Container>
@@ -68,19 +159,6 @@ class Customer extends React.Component {
           </ModalHeader>
 
           <ModalBody>
-            <FormGroup>
-              <label>
-                Id:
-              </label>
-
-              <input
-                className="form-control"
-                readOnly
-                type="text"
-              /*value={this.state.data.length+1}*/
-              />
-            </FormGroup>
-
             <FormGroup>
               <label>
                 Nombre:
@@ -99,7 +177,7 @@ class Customer extends React.Component {
               </label>
               <input
                 className="form-control"
-                name="phone_number"
+                name="phoneNumber"
                 type="text"
                 onChange={this.handleChange}
               />
@@ -130,15 +208,11 @@ class Customer extends React.Component {
 
           <ModalBody>
             <FormGroup>
-              <label>
-                Id:
-              </label>
-
               <input
                 className="form-control"
                 readOnly
-                type="text"
-              //value={this.state.form.id}
+                type="hidden"
+                value={this.state.form.id}
               />
             </FormGroup>
 
@@ -151,7 +225,7 @@ class Customer extends React.Component {
                 name="name"
                 type="text"
                 onChange={this.handleChange}
-              //value={this.state.form.libro}
+                value={this.state.form.name}
               />
             </FormGroup>
 
@@ -164,8 +238,20 @@ class Customer extends React.Component {
                 name="phone_number"
                 type="text"
                 onChange={this.handleChange}
-              //value={this.state.form.libro}
+                value={this.state.form.phoneNumber}
               />
+            </FormGroup>
+
+            <FormGroup>
+              <label>
+                Status:
+              </label>
+              <select className="form-control"
+                name="status"
+                onChange={this.handleChange}>
+                <option value="true">Activo</option>
+                <option value="false">Inactivo</option>
+              </select>
             </FormGroup>
           </ModalBody>
 
