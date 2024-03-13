@@ -6,6 +6,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { Table, Button, Container, Modal, ModalBody, ModalHeader, FormGroup, ModalFooter } from 'reactstrap';
 
 const listUrl = "http://localhost:7443/barber/list"
+const createUrl = "http://localhost:7443/barber/created"
 
 class Barber extends React.Component {
 
@@ -13,19 +14,48 @@ class Barber extends React.Component {
     data: [],
     modalActualizar: false,
     modalInsertar: false,
-  };
+    form: {
+      id: 0,
+      name: "",
+      status: true
+    }
+  }
 
   componentDidMount() {
     axios.get(listUrl)
-        .then(res => {
-            const barbers = res.data
-            this.setState({ data: barbers })
-        })
+      .then(res => {
+          const barbers = res.data
+          this.setState({ data: barbers })
+      })
   }
 
   mostrarModalInsertar = () => {
     this.setState({ modalInsertar: true, });
   };
+
+  insertar = () => {
+    let valorNuevo = {...this.state.form};
+    const request = {
+      name: valorNuevo.name
+    }
+
+    this.setState({
+      modalInsertar: false
+    })
+
+    axios.post(createUrl, request, {
+      'Content-Type': 'application/json'
+    })
+      .then(res => {
+        const response = res.data
+        if (response.successful) {
+          console.log(response.message)
+          this.componentDidMount()
+        } else {
+          console.error(response.message)
+        }
+      })
+  }
 
   cerrarModalInsertar = () => {
     this.setState({ modalInsertar: false, })
@@ -37,6 +67,15 @@ class Barber extends React.Component {
     } else {
       return 'Inactivo'
     }
+  }
+
+  handleChange = (e) => {
+    this.setState({
+      form: {
+        ...this.state.form,
+        [e.target.name]: e.target.value
+      }
+    })
   }
 
   render() {
@@ -61,10 +100,11 @@ class Barber extends React.Component {
                     <td>{elemento.name}</td>
                     <td>{this.processStatus(elemento.status)}</td>
                     <td>
-                      <Button color='primary' onClick={()=>this.mostrarModalActualizar(elemento)}>Editar</Button>{" "}
-                    </td>{" "}
+                      <Button color='primary' onClick={() => this.mostrarModalActualizar(elemento)}>Editar</Button>{" "}
+                    </td>
+                    {" "}
                   </tr>
-                ))}
+              ))}
             </tbody>
           </Table>
         </Container>
@@ -76,19 +116,6 @@ class Barber extends React.Component {
           </ModalHeader>
 
           <ModalBody>
-            <FormGroup>
-              <label>
-                Id:
-              </label>
-
-              <input
-                className="form-control"
-                readOnly
-                type="text"
-              /*value={this.state.data.length+1}*/
-              />
-            </FormGroup>
-
             <FormGroup>
               <label>
                 Nombre:

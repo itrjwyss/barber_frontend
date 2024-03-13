@@ -2,14 +2,25 @@ import React from 'react';
 import '../App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Table, Button, Container, Modal, ModalBody, ModalHeader, FormGroup, ModalFooter } from 'reactstrap';
+import axios from "axios";
+
+const listUrl = "http://localhost:7443/customer/list"
 
 class Customer extends React.Component {
 
   state = {
-    //data: data,
+    data: [],
     modalActualizar: false,
     modalInsertar: false,
   };
+
+  componentDidMount() {
+    axios.get(listUrl)
+        .then(res => {
+          const customers = res.data
+          this.setState({ data: customers })
+        })
+  }
 
   mostrarModalInsertar = () => {
     this.setState({ modalInsertar: true, });
