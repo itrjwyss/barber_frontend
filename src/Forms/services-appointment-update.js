@@ -152,7 +152,8 @@ class ServicesAppointmetUpdate extends React.Component {
           </label>
           <select className="form-control"
             name="customerId"
-            onChange={this.handleChange}>
+            onChange={this.handleChange}
+            value={this.state.form.customerId}>
             <option value="0">Seleccione un cliente</option>
             {this.state.dataCustomer.map((customer) => (
               <option value={customer.id}> {customer.label} </option>
@@ -164,7 +165,8 @@ class ServicesAppointmetUpdate extends React.Component {
           </label>
           <select className="form-control"
             name="barberId"
-            onChange={this.handleChange}>
+            onChange={this.handleChange}
+            value={this.state.form.barberId}>
             <option value="0">Seleccione un barbero</option>
             {this.state.dataBarber.map((barber) => (
               <option value={barber.id}> {barber.label} </option>

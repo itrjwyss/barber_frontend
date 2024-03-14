@@ -78,7 +78,6 @@ class ServicesAppointmet extends React.Component {
     var otroArreglo = this.state.selectedServices;
     var id = this.state.selectedServicesId;
     arreglo.map((registro) => {
-      console.log(Number(id) === registro.id);
       if (Number(id) === registro.id) {
         var service = arreglo.splice(contador, 1);
         otroArreglo.push(service[0]);
@@ -97,6 +96,26 @@ class ServicesAppointmet extends React.Component {
   cerrarModalAgregar = () => {
     this.setState({ modalAgregar: false, })
   };
+
+  eliminar = () => {
+    var contador = 0;
+    var arreglo = this.state.dataServices;
+    var otroArreglo = this.state.selectedServices;
+    var id = this.state.selectedServicesId;
+    otroArreglo.map((registro) => {
+      if (Number(id) === registro.id) {
+        var service = otroArreglo.splice(contador, 1);
+        arreglo.push(service[0]);
+      }
+      contador++;
+    });
+  
+    this.setState({
+      modalAgregar: false,
+      dataServices: arreglo,
+      selectedServices: otroArreglo
+    })
+  }
 
   handleServiceChange = (e) => {
     this.setState({
@@ -189,10 +208,10 @@ class ServicesAppointmet extends React.Component {
             </thead>
             <tbody>
               {this.state.selectedServices.map((elemento) => (
-                <tr>
+                <tr key={elemento.id}>
                   <td>{elemento.label}</td>
                   <td>
-                    <Button color='primary' onClick={() => this.mostrarModalActualizar(elemento)}>Eliminar</Button>{" "}
+                  <Button color='primary' onClick={() => this.eliminar(elemento)}>Eliminar</Button>{" "}
                   </td>
                   {" "}
                 </tr>

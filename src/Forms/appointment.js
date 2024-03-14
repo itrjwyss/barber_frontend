@@ -49,7 +49,7 @@ class Appointment extends React.Component {
         <Container>
           <br />
           {/*<Button color='success' onClick={() => this.mostrarModalInsertar()}>Agendar Cita</Button>*/}
-          <Nav.Link href="/Servicios/Citas">Agendar Cita</Nav.Link>
+          <Button color='success'><Nav.Link href="/Servicios/Citas">Agendar Cita</Nav.Link></Button>
 
           <br /><br />
 
