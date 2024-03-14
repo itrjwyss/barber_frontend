@@ -35,6 +35,14 @@ class Appointment extends React.Component {
     })
   }
 
+  processStatus = (status) => {
+    if (status) {
+      return 'Activo'
+    } else {
+      return 'Inactivo'
+    }
+  }
+
   render() {
     return (
       <>
@@ -53,6 +61,7 @@ class Appointment extends React.Component {
                 <th>Hora de finalización</th>
                 <th>Cliente</th>
                 <th>Barbero</th>
+                <th>Estado</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -64,6 +73,7 @@ class Appointment extends React.Component {
                   <td>{elemento.hourEnd}</td>
                   <td>{elemento.customerName}</td>
                   <td>{elemento.barberName}</td>
+                  <td>{this.processStatus(elemento.status)}</td>
                   <td>
                     <Button color='primary' href={'/Servicios/Citas/Actualizar/' + elemento.id}>Editar</Button>{" "}
                   </td>{" "}
