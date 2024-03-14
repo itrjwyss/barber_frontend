@@ -235,7 +235,7 @@ class Customer extends React.Component {
               </label>
               <input
                 className="form-control"
-                name="phone_number"
+                name="phoneNumber"
                 type="text"
                 onChange={this.handleChange}
                 value={this.state.form.phoneNumber}
