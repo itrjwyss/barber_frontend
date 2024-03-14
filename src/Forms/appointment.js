@@ -2,23 +2,107 @@ import React from 'react';
 import '../App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Table, Button, Container, Modal, ModalBody, ModalHeader, FormGroup, ModalFooter } from 'reactstrap';
+import axios from "axios";
+
+const listUrl = "http://localhost:7443/appointment/list"
+const listUrl2 = "http://localhost:7443/barber/list"
+const listUrl3 = "http://localhost:7443/customer/list"
+const createUrl = "http://localhost:7443/appointment/created"
 
 class Appointment extends React.Component {
 
   state = {
-    //data: data,
+    data: [],
+    dataBarber: [],
+    dataCustomer: [],
     modalActualizar: false,
     modalInsertar: false,
   };
+
+  getCustomerName(customerId) {
+    const customer = this.state.dataCustomer.find(customer => customer.id === customerId);
+    return customer ? customer.name : "Cliente no encontrado";
+  }
+  
+  getBarberName(barberId) {
+    const barber = this.state.dataBarber.find(barber => barber.id === barberId);
+    return barber ? barber.name : "Barbero no encontrado";
+  }
+
+  componentDidMount() {
+    axios.get(listUrl)
+      .then(res => {
+        // Manejar la primera respuesta
+        const data = res.data;
+  
+        // Realizar la segunda solicitud GET
+        return axios.get(listUrl2)
+          .then(res2 => {
+            // Manejar la segunda respuesta
+            const dataBarber = res2.data;
+  
+            // Realizar la tercera solicitud GET
+            return axios.get(listUrl3)
+              .then(res3 => {
+                // Manejar la tercera respuesta
+                const dataCustomer = res3.data;
+  
+                // Actualizar el estado con los datos recibidos
+                this.setState({ data, dataBarber, dataCustomer });
+              });
+          });
+      })
+      .catch(error => {
+        // Manejar errores si alguna de las solicitudes falla
+        console.error('Error al realizar solicitudes GET:', error);
+      });
+  }
 
   mostrarModalInsertar = () => {
     this.setState({ modalInsertar: true, });
   };
 
+  insertar = () => {
+    let valorNuevo = {...this.state.form};
+    const request = {
+      day: valorNuevo.day,
+      hourStart: valorNuevo.hourStart,
+      hourEnd: valorNuevo.hourEnd,
+      customerId: valorNuevo.customerId,
+      barberId: valorNuevo.barberId
+    }
+
+    this.setState({
+      modalInsertar: false
+    })
+
+    axios.post(createUrl, request, {
+      'Content-Type': 'application/json'
+    })
+      .then(res => {
+        const response = res.data
+        if (response.successful) {
+          console.log(response.message)
+          this.componentDidMount()
+        } else {
+          console.error(response.message)
+        }
+      })
+  }
+
   cerrarModalInsertar = () => {
     this.setState({ modalInsertar: false, })
   };
   
+  handleChange = (e) => {
+    this.setState({
+      form: {
+        ...this.state.form,
+        [e.target.name]: e.target.value
+      }
+    })
+  }
+
   render() {
     return (
       <>
@@ -30,25 +114,27 @@ class Appointment extends React.Component {
           <Table>
             <thead>
               <tr>
-                <th>Id</th>
                 <th>Fecha</th>
                 <th>Hora agendada</th>
+                <th>Hora de finalización</th>
                 <th>Cliente</th>
                 <th>Barbero</th>
+                <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {/* {this.state.data.map((elemento)=>(
-                  <tr>
-                    <td>{elemento.id}</td>
-                    <td>{elemento.libro}</td>
-                    <td>{elemento.autor}</td>
-                    <td>
-                      <Button color='primary' onClick={()=>this.mostrarModalActualizar(elemento)}>Editar</Button>{" "}
-                      <Button color='danger' onClick={()=>this.mostrarModalEliminar(elemento)}>Eliminar</Button>
-                    </td>{" "}
-                  </tr>
-                ))} */}
+              {this.state.data.map((elemento) => (
+                <tr key={elemento.id}>
+                  <td>{elemento.day}</td>
+                  <td>{elemento.hourStart}</td>
+                  <td>{elemento.hourEnd}</td>
+                  <td>{this.getCustomerName(elemento.customerId)}</td>
+                  <td>{this.getBarberName(elemento.barberId)}</td>
+                  <td>
+                    <Button color='primary' onClick={() => this.mostrarModalActualizar(elemento)}>Editar</Button>{" "}
+                  </td>{" "}
+                </tr>
+              ))}
             </tbody>
           </Table>
         </Container>
@@ -60,19 +146,6 @@ class Appointment extends React.Component {
           </ModalHeader>
 
           <ModalBody>
-            <FormGroup>
-              <label>
-                Id:
-              </label>
-
-              <input
-                className="form-control"
-                readOnly
-                type="text"
-              /*value={this.state.data.length+1}*/
-              />
-            </FormGroup>
-
             <FormGroup>
               <label>
                 Fecha:
@@ -87,11 +160,23 @@ class Appointment extends React.Component {
 
             <FormGroup>
               <label>
-                Hora:
+                Hora de inicio:
               </label>
               <input
                 className="form-control"
-                name="hour_start"
+                name="hourStart"
+                type="time"
+                onChange={this.handleChange}
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <label>
+                Hora de finalización:
+              </label>
+              <input
+                className="form-control"
+                name="hourEnd"
                 type="time"
                 onChange={this.handleChange}
               />
@@ -102,11 +187,11 @@ class Appointment extends React.Component {
                 Cliente:
               </label>
               <select className="form-control"
-                name="customer_id"
+                name="customerId"
                 onChange={this.handleChange}>
-                <option value="option1">Option 1</option>
-                <option value="option2">Option 2</option>
-                <option value="option3">Option 3</option>
+                {this.state.dataCustomer.map((customer) => (
+                <option value={customer.id}> {customer.name} </option>
+                ))}
               </select>
             </FormGroup>
 
@@ -115,11 +200,11 @@ class Appointment extends React.Component {
                 Barbero:
               </label>
               <select className="form-control"
-                name="barber_id"
+                name="barberId"
                 onChange={this.handleChange}>
-                <option value="option1">Option 1</option>
-                <option value="option2">Option 2</option>
-                <option value="option3">Option 3</option>
+                {this.state.dataBarber.map((barber) => (
+                <option value={barber.id}> {barber.name} </option>
+                ))}
               </select>
             </FormGroup>
           </ModalBody>
